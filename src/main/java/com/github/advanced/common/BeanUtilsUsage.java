@@ -1,7 +1,14 @@
 package com.github.advanced.common;
 
+import com.github.advanced.common.bean.User;
 import org.apache.commons.beanutils.*;
 import org.apache.commons.lang3.StringUtils;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class BeanUtilsUsage {
     public static void main(String[] args) throws Exception {
@@ -10,6 +17,52 @@ public class BeanUtilsUsage {
 
         demoDynaBeans();
 
+        demoConver();
+    }
+
+    public static void demoConver() {
+        System.out.println(StringUtils.center("demoConver", 40, "="));
+        ConvertUtils.register(new Converter() {
+            @Override
+            public Object convert(Class type, Object value) {
+                if(type != Date.class) {
+                    return null ;
+                }
+                if(value == null && "".equals(value.toString().trim())) {
+                    return null ;
+                }
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd") ;
+                Date date = null ;
+                try {
+                    date = sdf.parse((String) value) ;
+                } catch (ParseException e) {
+                    throw new RuntimeException(e) ;
+                }
+                return date;
+            }
+        }, Date.class) ;
+        Map<String, Object> map = new HashMap<>();
+        map.put("name", "jiabin");
+        map.put("age", 23);
+        map.put("gender", true);
+        map.put("birthday", "1991-03-12");
+        List<String> strong = Arrays.asList("1", "2", "3");
+        map.put("strong", strong);
+        Map<String, String> fault = new HashMap<>();
+        fault.put("1", "1");
+        fault.put("2", "2");
+        fault.put("3", "3");
+        map.put("fault", fault);
+        User user = new User() ;
+        try {
+            BeanUtils.populate(user, map) ;
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(user);
     }
 
     public static void demoNormalJavaBeans() throws Exception {
@@ -150,4 +203,5 @@ public class BeanUtilsUsage {
             this.zipCode = zipCode;
         }
     }
+
 }
